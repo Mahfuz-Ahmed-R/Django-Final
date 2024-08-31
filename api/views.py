@@ -1,3 +1,4 @@
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from . import models
 from . import serializers
@@ -18,7 +19,14 @@ from django.views.decorators.csrf import csrf_exempt
 from .constants import users_idd
 from rest_framework import generics
 
+class InvetoryGetView(generics.ListAPIView):
+    serializer_class = serializers.InventorySerializer
 
+    def get_queryset(self):
+        product_id = self.kwargs.get('id')
+        queryset = models.InventoryModel.objects.filter(product=product_id)
+        return queryset
+    
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = models.Product.objects.all()
     serializer_class = serializers.ProductSerializer

@@ -27,6 +27,7 @@ urlpatterns = [
     path('customer/<int:user_id>/', views.CustomerDetail.as_view(), name='customer-detail'),
     path('order-details/<int:user_id>/', views.OrderDetail.as_view(), name='order-details'),
     path('category_view/<slug:category_slug>/<slug:subcategory_slug>/', views.ProductByCategoryView.as_view(), name='category-subcategory-slug'),
+    path('get_inventory/<int:id>/', views.InvetoryGetView.as_view(), name='get_inventory'),
 
     # path('api/product/', views.ProdcutViewAPI.as_view(), name='product'),
     # path('api/product/<int:pk>/', views.ProductDetailAPI.as_view(), name='product-detail'),
