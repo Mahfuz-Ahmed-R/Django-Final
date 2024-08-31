@@ -29,7 +29,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-5hf8k5$($j%)qhkt^zgp@5=f64
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
+ALLOWED_HOSTS = ['*']
 CSRF_TRUSTED_ORIGINS = ['https://django-final-n0lr.onrender.com/', 'https://*.127.0.0.1']
 
 
