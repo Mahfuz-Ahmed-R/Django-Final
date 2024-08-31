@@ -28,17 +28,4 @@ urlpatterns = [
     path('order-details/<int:user_id>/', views.OrderDetail.as_view(), name='order-details'),
     path('category_view/<slug:category_slug>/<slug:subcategory_slug>/', views.ProductByCategoryView.as_view(), name='category-subcategory-slug'),
     path('get_inventory/<int:id>/', views.InvetoryGetView.as_view(), name='get_inventory'),
-
-    # path('api/product/', views.ProdcutViewAPI.as_view(), name='product'),
-    # path('api/product/<int:pk>/', views.ProductDetailAPI.as_view(), name='product-detail'),
-    # path('api/color/', views.ColorViewAPI.as_view(), name='color'),
-    # path('api/size/', views.SizeViewAPI.as_view(), name='color'),
-    # path('api/category/', views.CategoryViewAPI.as_view(), name='category'),
-    # path('api/sub-category/', views.SubCategoryViewAPI.as_view(), name='sub-category'),
-    # path('api/inventory/', views.InventoryViewAPI.as_view(), name='inevntory'),
-    # path('api/order/', views.OrderViewAPI.as_view(), name='order'),
-    # path('api/order-item/', views.OrderItemViewAPI.as_view(), name='order-item'),
-    # path('api/wishlist/', views.WishListViewAPI.as_view(), name='wishlist'),
-    # path('api/review/<int:pk>/', views.ReviewViewAPI.as_view(), name='review'),
-    # path('api/shipping-address/', views.ShippingAddressViewAPI.as_view(), name='shipping-address'),
 ]

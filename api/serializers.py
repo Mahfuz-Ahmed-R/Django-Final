@@ -249,22 +249,18 @@ class ReviewSerializer(serializers.ModelSerializer):
         print(f"Creating or updating review with product: {product}, user: {user}, rating: {rating}, review: {review_text}")
 
         try:
-            # Try to get the customer from user
             customer = models.Customer.objects.get(user=user)
         except models.Customer.DoesNotExist:
             raise NotFound(detail="Customer not found.")
         
-        # Try to get the existing review
         existing_review = models.ReviewModel.objects.filter(user=user, product=product).first()
 
         if existing_review:
-            # Update the existing review
             existing_review.rating = rating
             existing_review.review = review_text
             existing_review.save()
             return existing_review
         else:
-            # Create a new review
             try:
                 review_instance = models.ReviewModel.objects.create(
                     user=user,
@@ -349,7 +345,6 @@ class CancelOrder(serializers.ModelSerializer):
             inventory_item.quantity += my_order_item.quantity
             inventory_item.save()
 
-            # Filter ShippingAddress objects and select the latest one
             shipping_addresses = models.ShippingAddress.objects.filter(
                 order=my_order_item.order,
                 customer=my_order_item.customer
@@ -358,7 +353,6 @@ class CancelOrder(serializers.ModelSerializer):
             if not shipping_addresses.exists():
                 raise ValidationError("Matching shipping address does not exist.")
 
-            # Select the latest ShippingAddress
             shipping_address = shipping_addresses.latest('date_added')
 
             shipping_address.amount -= my_order_item.product.price
