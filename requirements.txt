@@ -1,0 +1,13 @@
+asgiref
+Django
+django-cors-headers
+django-filter
+djangorestframework
+environ
+future
+Markdown
+pillow
+python-dotenv
+serializers
+sqlparse
+tzdata
