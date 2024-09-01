@@ -93,11 +93,11 @@ class OrderSerializer(serializers.ModelSerializer):
         return obj.get_cart_items
 
 class OrderItemSerializer(serializers.ModelSerializer):
-    size = serializers.PrimaryKeyRelatedField(queryset=models.Size.objects.all())
     product = serializers.PrimaryKeyRelatedField(queryset=models.Product.objects.all())
     customer = serializers.PrimaryKeyRelatedField(queryset=models.Customer.objects.all())
+    size = serializers.PrimaryKeyRelatedField(queryset=models.InventoryModel.objects.all())
 
-    size_label = serializers.CharField(source='size.name', read_only=True)
+    size_label = serializers.CharField(source='size.size', read_only=True)
     product_name = serializers.CharField(source='product.name', read_only=True)
     order_description = serializers.CharField(source='order.description', read_only=True)
     product_price = serializers.DecimalField(source='product.price', max_digits=10, decimal_places=2, read_only=True)
@@ -105,7 +105,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.OrderItem
         fields = [
-            'id', 'product', 'size', 'quantity', 'date_added', 'size_label', 'product_name', 'order_description', 'product_price', 'customer'
+            'id', 'product','size', 'quantity', 'date_added', 'size_label', 'product_name', 'order_description', 'product_price', 'customer'
         ]
 
     def create(self, validated_data):
