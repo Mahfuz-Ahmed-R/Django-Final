@@ -118,7 +118,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Missing required fields.")
 
         if sizee:
-            inventory_item = models.InventoryModel.objects.get(product=productt, size=sizee)
+            inventory_item = models.InventoryModel.objects.get(id=sizee)
             if inventory_item.quantity > 0:
                 inventory_item.quantity -= quantity
                 inventory_item.save()
