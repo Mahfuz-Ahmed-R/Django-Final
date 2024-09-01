@@ -110,7 +110,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         productt = validated_data.get('product')
-        inventory = validated_data.get('size')
+        inventory = validated_data.get('inventory')
         quantity = validated_data.get('quantity')
         customer = validated_data.get('customer')
 
