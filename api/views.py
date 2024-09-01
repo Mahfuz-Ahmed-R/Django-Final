@@ -47,7 +47,20 @@ class ProductByCategoryView(generics.ListAPIView):
             queryset = queryset.filter(subcategory__slug=subcategory_slug)
         
         return queryset
+    
+class ProductByCategoryViewByPrice(generics.ListAPIView):
+    serializer_class = serializers.ProductSerializer
 
+    def get_queryset(self):
+        pk = self.kwargs.get('id', None)
+
+        if pk == 1:
+            queryset = models.Product.objects.all().order_by('price')
+        elif pk == 2:
+            queryset = models.Product.objects.all().order_by('-price')
+        else:
+            queryset = models.Product.objects.all()
+        return queryset
 
 
 class OrderViewSet(viewsets.ModelViewSet):
@@ -160,7 +173,7 @@ def activate(request, uid64, token):
         user.save()
         customer = models.Customer.objects.create(user=user, name=user.first_name, email=user.email)
         customer.save()
-        return redirect("login")
+        return redirect('https://foreverstoree.netlify.app/login')
     else:
         return Response("Invalid Activation Link")
 
