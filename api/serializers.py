@@ -95,9 +95,9 @@ class OrderSerializer(serializers.ModelSerializer):
 class OrderItemSerializer(serializers.ModelSerializer):
     product = serializers.PrimaryKeyRelatedField(queryset=models.Product.objects.all())
     customer = serializers.PrimaryKeyRelatedField(queryset=models.Customer.objects.all())
-    size = serializers.PrimaryKeyRelatedField(queryset=models.InventoryModel.objects.all())
+    inventory = serializers.PrimaryKeyRelatedField(queryset=models.InventoryModel.objects.all())
 
-    size_label = serializers.CharField(source='size.size', read_only=True)
+    size_label = serializers.CharField(source='inventory.size', read_only=True)
     product_name = serializers.CharField(source='product.name', read_only=True)
     order_description = serializers.CharField(source='order.description', read_only=True)
     product_price = serializers.DecimalField(source='product.price', max_digits=10, decimal_places=2, read_only=True)
@@ -105,20 +105,20 @@ class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.OrderItem
         fields = [
-            'id', 'product','size', 'quantity', 'date_added', 'size_label', 'product_name', 'order_description', 'product_price', 'customer'
+            'id', 'product','inventory', 'quantity', 'date_added', 'size_label', 'product_name', 'order_description', 'product_price', 'customer'
         ]
 
     def create(self, validated_data):
         productt = validated_data.get('product')
-        sizee = validated_data.get('size')
+        inventory = validated_data.get('size')
         quantity = validated_data.get('quantity')
         customer = validated_data.get('customer')
 
-        if not all([productt, customer, sizee, quantity]):
+        if not all([productt, customer, inventory, quantity]):
             raise serializers.ValidationError("Missing required fields.")
 
-        if sizee:
-            inventory_item = models.InventoryModel.objects.get(id=sizee)
+        if inventory:
+            inventory_item = models.InventoryModel.objects.get(id=inventory)
             if inventory_item.quantity > 0:
                 inventory_item.quantity -= quantity
                 inventory_item.save()
@@ -128,13 +128,13 @@ class OrderItemSerializer(serializers.ModelSerializer):
         orderr, created = models.Order.objects.get_or_create(customer=customer)
         orderr.save()
 
-        if models.OrderItem.objects.filter(product=productt, order=orderr, size=sizee).exists():
-            order_item = models.OrderItem.objects.get(product=productt, order=orderr, size=sizee)
+        if models.OrderItem.objects.filter(product=productt, order=orderr, size=inventory).exists():
+            order_item = models.OrderItem.objects.get(product=productt, order=orderr, size=inventory)
             order_item.quantity += quantity
             order_item.save()
             return order_item
 
-        order_item = models.OrderItem(product=productt, order=orderr, size=sizee, quantity=quantity)
+        order_item = models.OrderItem(product=productt, order=orderr, size=inventory, quantity=quantity)
         order_item.save()
         return order_item
     
