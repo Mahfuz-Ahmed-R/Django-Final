@@ -108,48 +108,49 @@ class OrderItemSerializer(serializers.ModelSerializer):
             'id', 'product','inventory', 'quantity', 'date_added', 'size_label', 'product_name', 'order_description', 'product_price', 'customer'
         ]
 
-    def create(self, validated_data):
-        productt = validated_data.get('product')
-        inventory = validated_data.get('inventory')
-        quantity = validated_data.get('quantity')
-        customer = validated_data.get('customer')
+        def create(self, validated_data):
+            productt = validated_data.get('product')
+            inventory_id = validated_data.get('inventory')
+            quantity = validated_data.get('quantity')
+            customer = validated_data.get('customer')
 
-        if not all([productt, customer, inventory, quantity]):
-            raise serializers.ValidationError("Missing required fields.")
+            if not all([productt, customer, inventory_id, quantity]):
+                raise serializers.ValidationError("Missing required fields.")
 
-        if inventory:
-            inventory_item = models.InventoryModel.objects.get(id=inventory)
-            if inventory_item.quantity > 0:
-                inventory_item.quantity -= quantity
-                inventory_item.save()
-            else:
-                raise serializers.ValidationError('Product out of stock')
+            if inventory_id:
+                inventory_item = models.InventoryModel.objects.get(id=inventory_id)
+                if inventory_item.quantity > 0:
+                    inventory_item.quantity -= quantity
+                    inventory_item.save()
+                else:
+                    raise serializers.ValidationError('Product out of stock')
 
-        orderr, created = models.Order.objects.get_or_create(customer=customer)
-        orderr.save()
+            orderr, created = models.Order.objects.get_or_create(customer=customer)
+            orderr.save()
 
-        if models.OrderItem.objects.filter(product=productt, order=orderr, size=inventory).exists():
-            order_item = models.OrderItem.objects.get(product=productt, order=orderr, size=inventory)
-            order_item.quantity += quantity
+            if models.OrderItem.objects.filter(product=productt, order=orderr, size=inventory_item).exists():
+                order_item = models.OrderItem.objects.get(product=productt, order=orderr, size=inventory_item)
+                order_item.quantity += quantity
+                order_item.save()
+                return order_item
+
+            # Create a new order item
+            order_item = models.OrderItem(product=productt, order=orderr, size=inventory_item, quantity=quantity)
             order_item.save()
             return order_item
-
-        order_item = models.OrderItem(product=productt, order=orderr, size=inventory, quantity=quantity)
-        order_item.save()
-        return order_item
     
-    def delete_order_item(self, pk):
-            try:
-                order_item = models.OrderItem.objects.get(pk=pk)
-                inventory_item = models.InventoryModel.objects.get(product=order_item.product, size=order_item.size)
-                inventory_item.quantity += order_item.quantity
-                inventory_item.save()
-                order_item.delete()
-                return order_item
-            except models.OrderItem.DoesNotExist:
-                raise serializers.ValidationError("Order item not found.")
-            except models.InventoryModel.DoesNotExist:
-                raise serializers.ValidationError("Inventory item not found.")
+        def delete_order_item(self, pk):
+                try:
+                    order_item = models.OrderItem.objects.get(pk=pk)
+                    inventory_item = models.InventoryModel.objects.get(product=order_item.product, size=order_item.size)
+                    inventory_item.quantity += order_item.quantity
+                    inventory_item.save()
+                    order_item.delete()
+                    return order_item
+                except models.OrderItem.DoesNotExist:
+                    raise serializers.ValidationError("Order item not found.")
+                except models.InventoryModel.DoesNotExist:
+                    raise serializers.ValidationError("Inventory item not found.")
 
 class WishListSerializer(serializers.ModelSerializer):
     product = serializers.PrimaryKeyRelatedField(queryset=models.Product.objects.all())
