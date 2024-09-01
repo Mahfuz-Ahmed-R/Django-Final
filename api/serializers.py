@@ -91,34 +91,34 @@ class OrderSerializer(serializers.ModelSerializer):
     
     def get_cart_item(self, obj):
         return obj.get_cart_items
-
+    
 class OrderItemSerializer(serializers.ModelSerializer):
-    product = serializers.PrimaryKeyRelatedField(queryset=models.Product.objects.all())
-    customer = serializers.PrimaryKeyRelatedField(queryset=models.Customer.objects.all())
-    inventory = serializers.PrimaryKeyRelatedField(queryset=models.InventoryModel.objects.all())
+        product = serializers.PrimaryKeyRelatedField(queryset=models.Product.objects.all())
+        customer = serializers.PrimaryKeyRelatedField(queryset=models.Customer.objects.all())
+        size = serializers.PrimaryKeyRelatedField(queryset=models.InventoryModel.objects.all())  # Assuming this should be 'size'
 
-    size_label = serializers.CharField(source='inventory.size', read_only=True)
-    product_name = serializers.CharField(source='product.name', read_only=True)
-    order_description = serializers.CharField(source='order.description', read_only=True)
-    product_price = serializers.DecimalField(source='product.price', max_digits=10, decimal_places=2, read_only=True)
+        size_label = serializers.CharField(source='size.size', read_only=True)  # Adjust source field if needed
+        product_name = serializers.CharField(source='product.name', read_only=True)
+        order_description = serializers.CharField(source='order.description', read_only=True)
+        product_price = serializers.DecimalField(source='product.price', max_digits=10, decimal_places=2, read_only=True)
 
-    class Meta:
-        model = models.OrderItem
-        fields = [
-            'id', 'product','inventory', 'quantity', 'date_added', 'size_label', 'product_name', 'order_description', 'product_price', 'customer'
-        ]
+        class Meta:
+            model = models.OrderItem
+            fields = [
+                'id', 'product', 'size', 'quantity', 'date_added', 'size_label', 'product_name', 'order_description', 'product_price', 'customer'
+            ]
 
         def create(self, validated_data):
             productt = validated_data.get('product')
-            inventory_id = validated_data.get('inventory')
+            size = validated_data.get('size')
             quantity = validated_data.get('quantity')
             customer = validated_data.get('customer')
 
-            if not all([productt, customer, inventory_id, quantity]):
+            if not all([productt, customer, size, quantity]):
                 raise serializers.ValidationError("Missing required fields.")
 
-            if inventory_id:
-                inventory_item = models.InventoryModel.objects.get(id=inventory_id)
+            if size:
+                inventory_item = models.InventoryModel.objects.get(id=size.id)  # Fetch by ID
                 if inventory_item.quantity > 0:
                     inventory_item.quantity -= quantity
                     inventory_item.save()
@@ -128,16 +128,16 @@ class OrderItemSerializer(serializers.ModelSerializer):
             orderr, created = models.Order.objects.get_or_create(customer=customer)
             orderr.save()
 
-            if models.OrderItem.objects.filter(product=productt, order=orderr, size=inventory_item).exists():
-                order_item = models.OrderItem.objects.get(product=productt, order=orderr, size=inventory_item)
+            if models.OrderItem.objects.filter(product=productt, order=orderr, size=size).exists():
+                order_item = models.OrderItem.objects.get(product=productt, order=orderr, size=size)
                 order_item.quantity += quantity
                 order_item.save()
                 return order_item
 
-            # Create a new order item
-            order_item = models.OrderItem(product=productt, order=orderr, size=inventory_item, quantity=quantity)
+            order_item = models.OrderItem(product=productt, order=orderr, size=size, quantity=quantity)
             order_item.save()
             return order_item
+
     
         def delete_order_item(self, pk):
                 try:
