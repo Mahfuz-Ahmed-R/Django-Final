@@ -355,7 +355,7 @@ class CancelOrder(serializers.ModelSerializer):
 
             shipping_address = shipping_addresses.latest('date_added')
 
-            shipping_address.amount -= my_order_item.product.price
+            shipping_address.amount -= my_order_item.product.price * my_order_item.quantity
             shipping_address.save()
 
             if shipping_address.amount == 60:
