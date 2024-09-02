@@ -119,15 +119,13 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
             if size:
                 inventory_item = models.InventoryModel.objects.get(id=size.id)
-                if inventory_item.quantity > 0:
+                if inventory_item.quantity >= quantity:
                     inventory_item.quantity -= quantity
                     inventory_item.save()
                 else:
                     raise serializers.ValidationError('Product out of stock')
 
-            orderr, created = models.Order.objects.get(customer=customer)
-            if not orderr or orderr.complete == True:
-                orderr = models.Order.objects.create(customer=customer)
+            orderr, created = models.Order.objects.get_or_create(customer=customer)
             orderr.save()
 
             if models.OrderItem.objects.filter(product=productt, order=orderr, size=size).exists():
