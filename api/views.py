@@ -88,10 +88,10 @@ class OrderItemDeleteView(APIView):
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
 class MyOrderDeleteView(APIView):
-    def delete(self, request, pk, format=None):
+    def delete(self, request, pk, id, format=None):
         serializer = serializers.CancelOrder()
         try:
-            myorders_item = serializer.delete_order_item(pk)
+            myorders_item = serializer.delete_order_item(pk,id)
             return Response(status=status.HTTP_204_NO_CONTENT)
         except serializers.ValidationError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)

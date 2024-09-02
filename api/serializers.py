@@ -336,13 +336,10 @@ class CancelOrder(serializers.ModelSerializer):
         model = models.OrderItem
         fields = '__all__'
     
-    def delete_order_item(self, pk):
+    def delete_order_item(self, pk, id):
         try:
             my_order_item = models.MyOrdersModel.objects.get(pk=pk)
-            inventory_item = models.InventoryModel.objects.get(
-                product=my_order_item.product,
-                size=my_order_item.size
-            )
+            inventory_item = models.InventoryModel.objects.get(id=id)
             inventory_item.quantity += my_order_item.quantity
             inventory_item.save()
 
