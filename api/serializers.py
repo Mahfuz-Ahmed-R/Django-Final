@@ -142,7 +142,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
         def delete_order_item(self, pk):
                 try:
                     order_item = models.OrderItem.objects.get(pk=pk)
-                    inventory_item = models.InventoryModel.objects.get(product=order_item.product, size=order_item.size)
+                    inventory_item = models.InventoryModel.objects.get(product=order_item.product)
                     inventory_item.quantity += order_item.quantity
                     inventory_item.save()
                     order_item.delete()
