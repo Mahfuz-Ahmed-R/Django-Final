@@ -95,9 +95,9 @@ class OrderSerializer(serializers.ModelSerializer):
 class OrderItemSerializer(serializers.ModelSerializer):
         product = serializers.PrimaryKeyRelatedField(queryset=models.Product.objects.all())
         customer = serializers.PrimaryKeyRelatedField(queryset=models.Customer.objects.all())
-        size = serializers.PrimaryKeyRelatedField(queryset=models.InventoryModel.objects.all())  # Assuming this should be 'size'
+        size = serializers.PrimaryKeyRelatedField(queryset=models.InventoryModel.objects.all())
 
-        size_label = serializers.CharField(source='size.size', read_only=True)  # Adjust source field if needed
+        size_label = serializers.CharField(source='size.size', read_only=True)
         product_name = serializers.CharField(source='product.name', read_only=True)
         order_description = serializers.CharField(source='order.description', read_only=True)
         product_price = serializers.DecimalField(source='product.price', max_digits=10, decimal_places=2, read_only=True)
@@ -118,7 +118,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError("Missing required fields.")
 
             if size:
-                inventory_item = models.InventoryModel.objects.get(id=size.id)  # Fetch by ID
+                inventory_item = models.InventoryModel.objects.get(id=size.id)
                 if inventory_item.quantity > 0:
                     inventory_item.quantity -= quantity
                     inventory_item.save()
@@ -155,10 +155,10 @@ class OrderItemSerializer(serializers.ModelSerializer):
 class WishListSerializer(serializers.ModelSerializer):
     product = serializers.PrimaryKeyRelatedField(queryset=models.Product.objects.all())
     customer = serializers.PrimaryKeyRelatedField(queryset=models.Customer.objects.all())
-    size = serializers.PrimaryKeyRelatedField(queryset=models.Size.objects.all())
+    size = serializers.PrimaryKeyRelatedField(queryset=models.InventoryModel.objects.all())
 
     product_name=serializers.CharField(source='product.name', read_only=True)
-    size_name=serializers.CharField(source='size.name', read_only=True)
+    size_name=serializers.CharField(source='size.size', read_only=True)
     product_image = serializers.ImageField(source='product.image_1', read_only=True)
     product_price = serializers.DecimalField(source='product.price', max_digits=10, decimal_places=2, read_only=True)
     customer_name=serializers.CharField(source='customer.name', read_only=True)
