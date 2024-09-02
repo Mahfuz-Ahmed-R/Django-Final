@@ -119,7 +119,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
             if size:
                 inventory_item = models.InventoryModel.objects.get(id=size.id)
-                if inventory_item.quantity >= quantity:
+                if inventory_item.quantity > 0:
                     inventory_item.quantity -= quantity
                     inventory_item.save()
                 else:
