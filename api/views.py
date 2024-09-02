@@ -61,6 +61,7 @@ class ProductByCategoryViewByPrice(generics.ListAPIView):
         else:
             queryset = models.Product.objects.all()
         return queryset
+      
 
 
 class OrderViewSet(viewsets.ModelViewSet):
