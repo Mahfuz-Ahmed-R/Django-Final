@@ -202,6 +202,7 @@ class WishListSerializer(serializers.ModelSerializer):
 class MyOrderSerializer(serializers.ModelSerializer):
     product = serializers.PrimaryKeyRelatedField(queryset=models.Product.objects.all())
     customer = serializers.PrimaryKeyRelatedField(queryset=models.Customer.objects.all())
+    size = serializers.PrimaryKeyRelatedField(queryset=models.InventoryModel.objects.all())
 
     product_name=serializers.CharField(source='product.name', read_only=True)
     product_image = serializers.ImageField(source='product.image_1', read_only=True)
@@ -213,6 +214,7 @@ class MyOrderSerializer(serializers.ModelSerializer):
             'id',
             'product',
             'customer',
+            'size',
             'product_name',
             'customer_name',
             'quantity',
