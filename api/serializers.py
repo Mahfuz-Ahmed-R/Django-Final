@@ -132,6 +132,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
             if not orderr or orderr.complete:
                 orderr = models.Order.objects.create(customer=customer)
+            orderr.save()
 
 
             order_item, created = models.OrderItem.objects.get_or_create(
