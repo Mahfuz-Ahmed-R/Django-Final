@@ -115,27 +115,36 @@ class OrderItemSerializer(serializers.ModelSerializer):
             customer = validated_data.get('customer')
 
             if not all([productt, customer, size, quantity]):
-                raise serializers.ValidationError("Missing required fields.")
+                raise serializers.ValidationError("Missing required fields: product, size, quantity, or customer.")
 
-            if size:
+            try:
                 inventory_item = models.InventoryModel.objects.get(id=size.id)
-                if inventory_item.quantity > 0:
-                    inventory_item.quantity -= quantity
-                    inventory_item.save()
-                else:
-                    raise serializers.ValidationError('Product out of stock')
+            except models.InventoryModel.DoesNotExist:
+                raise serializers.ValidationError("Invalid size selection.")
 
-            orderr, created = models.Order.objects.get_or_create(customer=customer)
-            orderr.save()
+            if inventory_item.quantity < quantity:
+                raise serializers.ValidationError('Not enough stock available.')
 
-            if models.OrderItem.objects.filter(product=productt, order=orderr, size=size).exists():
-                order_item = models.OrderItem.objects.get(product=productt, order=orderr, size=size)
+            inventory_item.quantity -= quantity
+            inventory_item.save()
+
+            orderr = models.Order.objects.filter(customer=customer, complete=False).first()
+
+            if not orderr or orderr.complete:
+                orderr = models.Order.objects.create(customer=customer)
+
+
+            order_item, created = models.OrderItem.objects.get_or_create(
+                product=productt, 
+                order=orderr, 
+                size=size, 
+                defaults={'quantity': quantity}
+            )
+
+            if not created:
                 order_item.quantity += quantity
                 order_item.save()
-                return order_item
 
-            order_item = models.OrderItem(product=productt, order=orderr, size=size, quantity=quantity)
-            order_item.save()
             return order_item
 
     
