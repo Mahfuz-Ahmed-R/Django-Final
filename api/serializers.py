@@ -325,7 +325,6 @@ def create(self, validated_data):
             amount=amount
         )
 
-        # Process the order items
         order_items = models.OrderItem.objects.filter(order=order)
         for item in order_items:
             product = item.product
@@ -340,7 +339,6 @@ def create(self, validated_data):
                 quantity=quantity
             )
 
-        # Clear the order items after processing
         models.OrderItem.objects.filter(order=order).delete()
 
         return shipping_address
