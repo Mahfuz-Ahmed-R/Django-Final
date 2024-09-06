@@ -5,7 +5,6 @@ from django.contrib.auth.models import User
 from rest_framework.exceptions import NotFound
 from payment.views import initiate_payment
 
-
 from .constants import users_idd
 
 
