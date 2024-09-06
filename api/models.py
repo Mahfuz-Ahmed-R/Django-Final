@@ -80,6 +80,7 @@ class Order(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, blank=True, null=True)
     date_ordered = models.DateTimeField(auto_now_add=True)
     complete = models.BooleanField(default=False, null=True, blank=False)
+    ordered = models.BooleanField(default=False, null=True, blank=False)
     
     def __str__(self):
         return f'{str(self.id)}. {self.customer.name}'

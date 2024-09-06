@@ -3,6 +3,7 @@ from rest_framework import serializers
 from . import models
 from django.contrib.auth.models import User
 from rest_framework.exceptions import NotFound
+from payment.views import payment
 
 
 from .constants import users_idd
@@ -301,6 +302,13 @@ class ShippingSerializer(serializers.ModelSerializer):
             customer = models.Customer.objects.get(user=user_id)
         except models.Customer.DoesNotExist:
             raise NotFound(detail="Customer not found.")
+        
+        payment(
+            user_id=user_id,
+            amount=amount,
+            street=street,
+        )
+        
 
         shipping_address = models.ShippingAddress.objects.create(
             customer=customer,
