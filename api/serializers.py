@@ -3,7 +3,7 @@ from rest_framework import serializers
 from . import models
 from django.contrib.auth.models import User
 from rest_framework.exceptions import NotFound
-from payment.views import payment
+from payment.views import initiate_payment
 
 
 from .constants import users_idd
@@ -287,32 +287,38 @@ class ShippingSerializer(serializers.ModelSerializer):
         model = models.ShippingAddress
         fields = '__all__'
 
-def create(self, validated_data):
-    # Extract validated data
-    order = validated_data.get('order')
-    user_id = validated_data.get('user')
-    street = validated_data.get('street')
-    city = validated_data.get('city')
-    state = validated_data.get('state')
-    zipcode = validated_data.get('zipcode')
-    country = validated_data.get('country')
-    payment = validated_data.get('payment')
-    amount = validated_data.get('amount')
+    def create(self, validated_data):
+        # Extract validated data
+        order = validated_data.get('order')
+        user_id = validated_data.get('user')
+        street = validated_data.get('street')
+        city = validated_data.get('city')
+        state = validated_data.get('state')
+        zipcode = validated_data.get('zipcode')
+        country = validated_data.get('country')
+        payment = validated_data.get('payment')
+        amount = validated_data.get('amount')
 
-    try:
-        customer = models.Customer.objects.get(user=user_id)
-    except models.Customer.DoesNotExist:
-        raise NotFound(detail="Customer not found.")
-    
-    # Pass data to the payment function, do not create the ShippingAddress yet
-    payment_response = payment(
-        user_id=user_id,
-        amount=amount,
-        street=street,
-    )
-    
-    # Check if the payment was successful
-    if payment_response['status'] == 'SUCCESS':
+        try:
+            customer = models.Customer.objects.get(user=user_id)
+        except models.Customer.DoesNotExist:
+            raise NotFound(detail="Customer not found.")
+        
+        # Initialize SSLCOMMERZ payment
+        if payment == 'sslcommerz':
+            sslcommerz = initiate_payment(
+                total_amount=amount,
+                order_id=order.id,
+                user_id = user_id,
+            )
+
+            # Get the payment URL
+            payment_url = sslcommerz.create_payment()
+
+            # Return the payment URL as a response, don't create the address until payment is successful
+            return {'payment_url': payment_url}
+        
+        # If payment method is Cash on Delivery, directly create the ShippingAddress
         shipping_address = models.ShippingAddress.objects.create(
             customer=customer,
             order=order,
@@ -342,9 +348,6 @@ def create(self, validated_data):
         models.OrderItem.objects.filter(order=order).delete()
 
         return shipping_address
-    else:
-        raise ValidationError("Payment failed or canceled. No shipping address created.")
-
 
 
 class CancelOrder(serializers.ModelSerializer):
