@@ -287,29 +287,32 @@ class ShippingSerializer(serializers.ModelSerializer):
         model = models.ShippingAddress
         fields = '__all__'
 
-    def create(self, validated_data):
-        order = validated_data.get('order')
-        user_id = validated_data.get('user')
-        street = validated_data.get('street')
-        city = validated_data.get('city')
-        state = validated_data.get('state')
-        zipcode = validated_data.get('zipcode')
-        country = validated_data.get('country')
-        payment = validated_data.get('payment')
-        amount = validated_data.get('amount')
+def create(self, validated_data):
+    # Extract validated data
+    order = validated_data.get('order')
+    user_id = validated_data.get('user')
+    street = validated_data.get('street')
+    city = validated_data.get('city')
+    state = validated_data.get('state')
+    zipcode = validated_data.get('zipcode')
+    country = validated_data.get('country')
+    payment = validated_data.get('payment')
+    amount = validated_data.get('amount')
 
-        try:
-            customer = models.Customer.objects.get(user=user_id)
-        except models.Customer.DoesNotExist:
-            raise NotFound(detail="Customer not found.")
-        
-        payment(
-            user_id=user_id,
-            amount=amount,
-            street=street,
-        )
-        
-
+    try:
+        customer = models.Customer.objects.get(user=user_id)
+    except models.Customer.DoesNotExist:
+        raise NotFound(detail="Customer not found.")
+    
+    # Pass data to the payment function, do not create the ShippingAddress yet
+    payment_response = payment(
+        user_id=user_id,
+        amount=amount,
+        street=street,
+    )
+    
+    # Check if the payment was successful
+    if payment_response['status'] == 'SUCCESS':
         shipping_address = models.ShippingAddress.objects.create(
             customer=customer,
             order=order,
@@ -322,12 +325,13 @@ class ShippingSerializer(serializers.ModelSerializer):
             amount=amount
         )
 
+        # Process the order items
         order_items = models.OrderItem.objects.filter(order=order)
         for item in order_items:
             product = item.product
             size = item.size
             quantity = item.quantity
-            
+
             models.MyOrdersModel.objects.get_or_create(
                 customer=customer,
                 product=product,
@@ -336,9 +340,13 @@ class ShippingSerializer(serializers.ModelSerializer):
                 quantity=quantity
             )
 
+        # Clear the order items after processing
         models.OrderItem.objects.filter(order=order).delete()
 
         return shipping_address
+    else:
+        raise ValidationError("Payment failed or canceled. No shipping address created.")
+
 
 
 class CancelOrder(serializers.ModelSerializer):

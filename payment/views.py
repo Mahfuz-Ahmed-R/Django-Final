@@ -42,7 +42,9 @@ def payment(request, user_id, amount, street):
     post_body['product_category'] = "Test Category"
     post_body['product_profile'] = "general"
 
-
     response = sslcz.createSession(post_body)
-    print(response)
-    return redirect(response['GatewayPageURL'])
+    if response['status'] == 'SUCCESS':
+        return {'status': 'SUCCESS', 'GatewayPageURL': response['GatewayPageURL']}
+    else:
+        return {'status': 'FAILED', 'message': response['failedreason']}
+
