@@ -1,3 +1,4 @@
+from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
 from sslcommerz_lib import SSLCOMMERZ
 from api.models import Order, Customer, ShippingAddress, OrderItem, MyOrdersModel
@@ -75,7 +76,7 @@ class PaymentSuccess(APIView):
         }
 
         # Initialize the serializer with data
-        serializer = serializers.ShippingSerializer(data=shipping_data)
+        serializer = serializers.ShippingSerializerSSL(data=shipping_data)
 
         # Validate and save the shipping address
         if serializer.is_valid():
@@ -103,7 +104,7 @@ class PaymentSuccess(APIView):
             # Optionally, delete order items after processing
             models.OrderItem.objects.filter(order=order_id).delete()
 
-            return Response({'message': 'Payment successful and shipping address created'}, status=status.HTTP_200_OK)
+            return HttpResponseRedirect('https://django-final-n0lr.onrender.com/myorders/')
         
         # Return validation errors from the serializer
         return Response({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
@@ -130,7 +131,7 @@ class PaymentCancel(APIView):
                 fail_silently=False,
             )
 
-            return Response({'message': 'Payment cancelled and order status updated'}, status=status.HTTP_200_OK)
+            return HttpResponseRedirect('https://django-final-n0lr.onrender.com/order-item/')
         except Order.DoesNotExist:
             return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -155,7 +156,7 @@ class PaymentFail(APIView):
             )
 
             # Return success response
-            return Response({'message': 'Payment failed and order status updated'}, status=status.HTTP_200_OK)
+            return HttpResponseRedirect('https://django-final-n0lr.onrender.com/order-item/')
         except User.DoesNotExist:
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
         except Order.DoesNotExist:

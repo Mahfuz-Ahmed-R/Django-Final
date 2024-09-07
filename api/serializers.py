@@ -278,6 +278,13 @@ class ReviewSerializer(serializers.ModelSerializer):
             except models.Customer.DoesNotExist:
                 raise serializers.ValidationError("Customer not found.")
 
+class ShippingSerializerSSL(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    order = serializers.PrimaryKeyRelatedField(queryset=models.Order.objects.all())  # Assuming you have an Order model
+
+    class Meta:
+        model = models.ShippingAddress  # Assuming ShippingAddress model exists
+        fields = '__all__'
 
 class ShippingSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
@@ -287,58 +294,58 @@ class ShippingSerializer(serializers.ModelSerializer):
         model = models.ShippingAddress  # Assuming ShippingAddress model exists
         fields = '__all__'
 
-    # def create(self, validated_data):
-    #     # Extract validated data
-    #     order = validated_data.get('order')
-    #     user_id = validated_data.get('user')
-    #     street = validated_data.get('street')
-    #     city = validated_data.get('city')
-    #     state = validated_data.get('state')
-    #     zipcode = validated_data.get('zipcode')
-    #     country = validated_data.get('country')
-    #     payment = validated_data.get('payment')
-    #     amount = validated_data.get('amount')
+    def create(self, validated_data):
+        # Extract validated data
+        order = validated_data.get('order')
+        user_id = validated_data.get('user')
+        street = validated_data.get('street')
+        city = validated_data.get('city')
+        state = validated_data.get('state')
+        zipcode = validated_data.get('zipcode')
+        country = validated_data.get('country')
+        payment = validated_data.get('payment')
+        amount = validated_data.get('amount')
 
-    #     try:
-    #         customer = models.Customer.objects.get(user=user_id)
-    #     except models.Customer.DoesNotExist:
-    #         raise serializers.ValidationError("Customer not found.")
+        try:
+            customer = models.Customer.objects.get(user=user_id)
+        except models.Customer.DoesNotExist:
+            raise serializers.ValidationError("Customer not found.")
 
-    #     # Create the ShippingAddress object after successful payment
-    #     shipping_address = models.ShippingAddress.objects.create(
-    #         customer=customer,
-    #         order=order,
-    #         street=street,
-    #         city=city,
-    #         state=state,
-    #         zipcode=zipcode,
-    #         country=country,
-    #         payment=payment,
-    #         amount=amount
-    #     )
+        # Create the ShippingAddress object after successful payment
+        shipping_address = models.ShippingAddress.objects.create(
+            customer=customer,
+            order=order,
+            street=street,
+            city=city,
+            state=state,
+            zipcode=zipcode,
+            country=country,
+            payment=payment,
+            amount=amount
+        )
 
-    #     # Create MyOrdersModel entries and handle order items
-    #     order_items = models.OrderItem.objects.filter(order=order)
-    #     for item in order_items:
-    #         product = item.product
-    #         size = item.size
-    #         quantity = item.quantity
+        # Create MyOrdersModel entries and handle order items
+        order_items = models.OrderItem.objects.filter(order=order)
+        for item in order_items:
+            product = item.product
+            size = item.size
+            quantity = item.quantity
 
-    #         models.MyOrdersModel.objects.get_or_create(
-    #             customer=customer,
-    #             product=product,
-    #             order=order,
-    #             size=size,
-    #             quantity=quantity
-    #         )
+            models.MyOrdersModel.objects.get_or_create(
+                customer=customer,
+                product=product,
+                order=order,
+                size=size,
+                quantity=quantity
+            )
 
-    #     # Optionally, clean up order items after they're processed
-    #     orders = models.Order.objects.get(id=order)
-    #     orders.status = "Successful"
-    #     orders.save()
-    #     models.OrderItem.objects.filter(order=order).delete()
+        # Optionally, clean up order items after they're processed
+        orders = models.Order.objects.get(id=order)
+        orders.status = "Successful + COD"
+        orders.save()
+        models.OrderItem.objects.filter(order=order).delete()
 
-    #     return shipping_address
+        return shipping_address
 
 
 class CancelOrder(serializers.ModelSerializer):
