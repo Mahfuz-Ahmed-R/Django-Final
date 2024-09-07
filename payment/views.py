@@ -38,12 +38,13 @@ class InitiatePayment(APIView):
         post_body['cus_add1'] = "customer address"
         post_body['cus_city'] = "Dhaka"
         post_body['cus_country'] = "Bangladesh"
-        post_body['shipping_method'] = "YES"
+        post_body['shipping_method'] = "NO"
         post_body['multi_card_name'] = ""
         post_body['num_of_item'] = order.get_cart_items
         post_body['product_name'] = "Test"
         post_body['product_category'] = "Test Category"
         post_body['product_profile'] = "general"
+        # post_body['ship_name']= user.username 
 
         response = sslcz.createSession(post_body)
         print("SSLCOMMERZ Response:", response)
