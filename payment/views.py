@@ -48,7 +48,6 @@ class InitiatePayment(APIView):
 
         response = sslcz.createSession(post_body)
         print("SSLCOMMERZ Response:", response)
-        PaymentSuccess.post(data)
         return Response({'payment_url': response['GatewayPageURL']}, status=status.HTTP_200_OK)
 
 class PaymentSuccess(APIView):
