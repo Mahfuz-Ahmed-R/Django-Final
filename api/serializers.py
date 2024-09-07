@@ -281,9 +281,10 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 class ShippingSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    order = serializers.PrimaryKeyRelatedField(queryset=models.Order.objects.all())  # Assuming you have an Order model
 
     class Meta:
-        model = models.ShippingAddress
+        model = models.ShippingAddress  # Assuming ShippingAddress model exists
         fields = '__all__'
 
     def create(self, validated_data):
@@ -301,23 +302,9 @@ class ShippingSerializer(serializers.ModelSerializer):
         try:
             customer = models.Customer.objects.get(user=user_id)
         except models.Customer.DoesNotExist:
-            raise NotFound(detail="Customer not found.")
-        
-        # Initialize SSLCOMMERZ payment
-        if payment == 'sslcommerz':
-            sslcommerz = initiate_payment(
-                total_amount=amount,
-                order_id=order.id,
-                user_id = user_id,
-            )
+            raise serializers.ValidationError("Customer not found.")
 
-            # Get the payment URL
-            payment_url = sslcommerz.create_payment()
-
-            # Return the payment URL as a response, don't create the address until payment is successful
-            return {'payment_url': payment_url}
-        
-        # If payment method is Cash on Delivery, directly create the ShippingAddress
+        # Create the ShippingAddress object after successful payment
         shipping_address = models.ShippingAddress.objects.create(
             customer=customer,
             order=order,
@@ -330,6 +317,7 @@ class ShippingSerializer(serializers.ModelSerializer):
             amount=amount
         )
 
+        # Create MyOrdersModel entries and handle order items
         order_items = models.OrderItem.objects.filter(order=order)
         for item in order_items:
             product = item.product
@@ -344,6 +332,7 @@ class ShippingSerializer(serializers.ModelSerializer):
                 quantity=quantity
             )
 
+        # Optionally, clean up order items after they're processed
         models.OrderItem.objects.filter(order=order).delete()
 
         return shipping_address
