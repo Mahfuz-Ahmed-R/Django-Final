@@ -53,10 +53,10 @@ class InitiatePayment(APIView):
 class PaymentSuccess(APIView):
     def post(self, request, *args, **kwargs):
         # # Handle the success callback from SSLCOMMERZ
-        # data = request.data
+        data = request.data
         # transaction_id = data.get('tran_id')
         # payment_status = data.get('status')
-        # print(f"Received callback data: {data}")
+        print(f"Received callback data: {data}")
         
         # # Verify the payment status with SSLCOMMERZ (implement this verification)
         # if payment_status == 'Successful':  # Check the actual status returned
