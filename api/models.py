@@ -83,7 +83,7 @@ class Order(models.Model):
     status = models.CharField(max_length=254, null=True, blank=False)
     
     def __str__(self):
-        return f'{str(self.id)}. {self.customer.name}'
+        return str(self.id)
     
     @property
     def get_cart_total(self):
