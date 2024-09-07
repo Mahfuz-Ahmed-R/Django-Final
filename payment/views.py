@@ -87,7 +87,7 @@ class PaymentSuccess(APIView):
                 models.MyOrdersModel.objects.get_or_create(
                     customer=customer,
                     product=item.product,
-                    order=order_instance,
+                    order=order_instance.id,
                     size=item.size,
                     quantity=item.quantity
                 )
