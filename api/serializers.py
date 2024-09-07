@@ -3,7 +3,7 @@ from rest_framework import serializers
 from . import models
 from django.contrib.auth.models import User
 from rest_framework.exceptions import NotFound
-from payment.views import initiate_payment
+from payment.views import InitiatePayment
 
 from .constants import users_idd
 
@@ -333,6 +333,9 @@ class ShippingSerializer(serializers.ModelSerializer):
             )
 
         # Optionally, clean up order items after they're processed
+        orders = models.Order.objects.get(id=order)
+        orders.status = "Successful"
+        orders.save()
         models.OrderItem.objects.filter(order=order).delete()
 
         return shipping_address

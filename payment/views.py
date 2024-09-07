@@ -1,14 +1,16 @@
 from django.shortcuts import redirect
 from sslcommerz_lib import SSLCOMMERZ
-from api.models import Order, Customer
+from api.models import Order, Customer, ShippingAddress, OrderItem, MyOrdersModel
 import random, string
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from api import models, serializers
-from rest_framework.exceptions import NotFound
 from rest_framework import status
+from rest_framework.views import APIView
+from django.conf import settings
+from api import serializers
+from django.core.mail import send_mail
 
 def generate_transaction_id(length=12):
     characters = string.ascii_letters + string.digits
@@ -16,63 +18,100 @@ def generate_transaction_id(length=12):
 
 transaction_id = generate_transaction_id()
 
-@csrf_exempt
-@api_view(['POST'])
-def initiate_payment(request):
-    data = request.data
-    amount = data['amount']
-    order = data['order']
-    user = data['user']
-    settings = {
-        'store_id': 'forev66dab988a89cf',
-        'store_pass': 'forev66dab988a89cf@ssl',
-        'issandbox': True
-    }
-    sslcz = SSLCOMMERZ(settings)
-    post_body = {
-        'total_amount': amount,
-        'currency': 'BDT',
-        'tran_id': transaction_id,
-        'success_url': 'https://django-final-n0lr.onrender.com/myorders/',
-        'fail_url': 'https://django-final-n0lr.onrender.com/order-item/',
-        'cancel_url': 'https://django-final-n0lr.onrender.com/order-item/',
-        'cus_name': User.objects.get(id=user).username,
-        'cus_email': User.objects.get(id=user).email,
-    }
+class InitiatePayment(APIView):
+    def post(self, request, order_id, user_id, *args, **kwargs):
+        user = User.objects.get(id=user_id)
+        order = Order.objects.get(id=order_id)
+        settings = { 'store_id': 'forev66dab988a89cf', 'store_pass': 'forev66dab988a89cf@ssl', 'issandbox': True }
+        sslcz = SSLCOMMERZ(settings)
+        post_body = {}
+        post_body['total_amount'] = order.get_cart_total
+        post_body['currency'] = "BDT"
+        post_body['tran_id'] = transaction_id
+        post_body['success_url'] = 'https://django-final-n0lr.onrender.com/payment/success/'
+        post_body['fail_url'] = 'https://django-final-n0lr.onrender.com/payment/fail/'
+        post_body['cancel_url'] = 'https://django-final-n0lr.onrender.com/payment/cancel/'
+        post_body['emi_option'] = 0
+        post_body['cus_name'] = user.username
+        post_body['cus_email'] = user.email
+        post_body['cus_phone'] = "01700000000"
+        post_body['cus_add1'] = "customer address"
+        post_body['cus_city'] = "Dhaka"
+        post_body['cus_country'] = "Bangladesh"
+        post_body['shipping_method'] = "YES"
+        post_body['multi_card_name'] = ""
+        post_body['num_of_item'] = order.get_cart_items
+        post_body['product_name'] = "Test"
+        post_body['product_category'] = "Test Category"
+        post_body['product_profile'] = "general"
 
-    # Create SSLCOMMERZ session
-    response_data = sslcz.createSession(post_body)
-    
-    return Response({'payment_url': response_data.get('GatewayPageURL')})
+        response = sslcz.createSession(post_body)
+        if response.get('status') == 'SUCCESS':
+            return Response({'payment_url': response['GatewayPageURL']}, status=status.HTTP_200_OK)
+        return Response({'error': 'Failed to initiate payment'}, status=status.HTTP_400_BAD_REQUEST)
 
-# @csrf_exempt
-# @api_view(['GET'])
-# def payment_success(request, order_id):
-#     order = Order.objects.get(id=order_id)
-#     order.is_paid = True
-#     order.save()
-#     try:
-#         order = models.Order.objects.get(id=order_id)
-#         user = order.user
-#     except models.Order.DoesNotExist:
-#         return Response({'error': 'Order not found'}, status=404)
-    
-#     # Prepare shipping address data (this could be from session or database)
-#     shipping_data = {
-#         'order': order.id,
-#         'user': user.id,
-#         'street': 'Address',  # Use actual address
-#         'city': 'City',
-#         'state': 'State',
-#         'zipcode': 'Zipcode',
-#         'country': 'Country',
-#         'payment': 'sslcommerz',
-#         'amount': order.total_amount,  
-#     }
-    
-#     serializer = serializers.ShippingSerializer(data=shipping_data)
-#     if serializer.is_valid():
-#         serializer.save()
-#         return Response({'message': 'Shipping address created successfully'})
-#     return Response(serializer.errors, status=400)
-    
+class PaymentSuccess(APIView):
+    def get(self, request, *args, **kwargs):
+        # Extract data from request or session
+        data = request.data
+        serializer = serializers.ShippingSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': 'Payment successful and shipping address created'}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class PaymentCancel(APIView):
+    def get(self, request, *args, **kwargs):
+        # Extract order ID from request or session
+        order_id = request.query_params.get('order_id')
+        user = request.query_params.get('user_id')
+        main_user = User.objects.get(id=user)
+        
+        if not order_id:
+            return Response({'error': 'Order ID not provided'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            # Update order status to 'Cancelled'
+            order = Order.objects.get(id=order_id)
+            order.status = 'Cancelled'
+            order.save()
+
+            # Send cancellation email to user
+            send_mail(
+                'Payment Cancelled',
+                'Your payment has been cancelled. If this was a mistake, please try again.',
+                'from@example.com',
+                [user.email],
+                fail_silently=False,
+            )
+
+            return Response({'message': 'Payment cancelled and order status updated'}, status=status.HTTP_200_OK)
+        except Order.DoesNotExist:
+            return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
+
+class PaymentFail(APIView):
+    def get(self, request, *args, **kwargs):
+        # Extract order ID from request or session
+        order_id = request.query_params.get('order_id')
+        user = request.query_params.get('user_id')
+        main_user = User.objects.get(id=user)
+        
+        if not order_id:
+            return Response({'error': 'Order ID not provided'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            # Update order status to 'Cancelled'
+            order = Order.objects.get(id=order_id)
+            order.status = 'Failed'
+            order.save()
+
+            # Send cancellation email to user
+            send_mail(
+                'Payment Failed',
+                'Your payment has been Failed. If this was a mistake, please try again.',
+                'from@example.com',
+                [user.email],
+                fail_silently=False,
+            )
+        except:
+            return Response({'message': 'Payment failed'}, status=status.HTTP_400_BAD_REQUEST)
