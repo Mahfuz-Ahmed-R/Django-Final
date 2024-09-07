@@ -47,16 +47,16 @@ class InitiatePayment(APIView):
         post_body['product_profile'] = "general"
 
         response = sslcz.createSession(post_body)
-        print("SSLCOMMERZ Response:", response)
+        print(f"Received callback data: {data}")
         return Response({'payment_url': response['GatewayPageURL']}, status=status.HTTP_200_OK)
 
 class PaymentSuccess(APIView):
     def post(self, request, *args, **kwargs):
         # # Handle the success callback from SSLCOMMERZ
-        data = request.data
+        # data = request.data
         # transaction_id = data.get('tran_id')
         # payment_status = data.get('status')
-        print(f"Received callback data: {data}")
+        # print(f"Received callback data: {data}")
         
         # # Verify the payment status with SSLCOMMERZ (implement this verification)
         # if payment_status == 'Successful':  # Check the actual status returned
