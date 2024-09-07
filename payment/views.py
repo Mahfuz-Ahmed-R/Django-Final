@@ -52,35 +52,36 @@ class InitiatePayment(APIView):
 
 class PaymentSuccess(APIView):
     def post(self, request, *args, **kwargs):
-        # Handle the success callback from SSLCOMMERZ
-        data = request.data
-        transaction_id = data.get('tran_id')
-        payment_status = data.get('status')
-        print(f"Received callback data: {data}")
+        # # Handle the success callback from SSLCOMMERZ
+        # data = request.data
+        # transaction_id = data.get('tran_id')
+        # payment_status = data.get('status')
+        # print(f"Received callback data: {data}")
         
-        # Verify the payment status with SSLCOMMERZ (implement this verification)
-        if payment_status == 'Successful':  # Check the actual status returned
-            # Retrieve payment details and process shipping
-            data = {
-                'order': data.get('order_id'),
-                'user': data.get('user_id'),
-                'name': data.get('cus_name'),
-                'email': data.get('cus_email'),
-                'street': data.get('cus_add1'),
-                'city': data.get('cus_city'),
-                'state': data.get('state'),
-                'zipcode': data.get('zipcode'),
-                'country': data.get('cus_country'),
-                'payment': 'sslcommerz',
-                'amount': data.get('total_amount')
-            }
-            serializer = serializers.ShippingSerializer(data=data)
-            if serializer.is_valid():
-                serializer.save()
-                return Response({'message': 'Payment successful and shipping address created'}, status=status.HTTP_200_OK)
-            return Response({'message': 'Invalid data'}, status=status.HTTP_400_BAD_REQUEST)
+        # # Verify the payment status with SSLCOMMERZ (implement this verification)
+        # if payment_status == 'Successful':  # Check the actual status returned
+        #     # Retrieve payment details and process shipping
+        #     data = {
+        #         'order': data.get('order_id'),
+        #         'user': data.get('user_id'),
+        #         'name': data.get('cus_name'),
+        #         'email': data.get('cus_email'),
+        #         'street': data.get('cus_add1'),
+        #         'city': data.get('cus_city'),
+        #         'state': data.get('state'),
+        #         'zipcode': data.get('zipcode'),
+        #         'country': data.get('cus_country'),
+        #         'payment': 'sslcommerz',
+        #         'amount': data.get('total_amount')
+        #     }
+        #     serializer = serializers.ShippingSerializer(data=data)
+        #     if serializer.is_valid():
+        #         serializer.save()
+        #         return Response({'message': 'Payment successful and shipping address created'}, status=status.HTTP_200_OK)
+        #     return Response({'message': 'Invalid data'}, status=status.HTTP_400_BAD_REQUEST)
         
-        return Response({'message': 'Payment failed or canceled'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': 'Payment done'}, status=status.HTTP_200_OK)
+        # return Response({'message': 'Payment failed or canceled'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PaymentCancel(APIView):
