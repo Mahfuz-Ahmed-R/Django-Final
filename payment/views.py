@@ -64,7 +64,7 @@ class PaymentSuccess(APIView):
         shipping_data = {
             'user': user_id,
             'customer': customer.id, 
-            'order': order_id,
+            'order': order_instance.id,
             'street':'street',
             'city':'city',
             'state':'state',
