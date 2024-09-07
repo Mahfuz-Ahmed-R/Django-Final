@@ -66,7 +66,8 @@ class PaymentSuccess(APIView):
 
         # Prepare the data for the ShippingSerializer
         shipping_data = {
-            'customer': customer.id,  # Assuming the serializer expects the customer ID
+            'user': user_id,
+            'customer': customer.id, 
             'order': order_instance.id,
             'payment': 'sslcommerz',
             'amount': amount
