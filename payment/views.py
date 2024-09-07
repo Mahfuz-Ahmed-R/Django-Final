@@ -50,15 +50,23 @@ class InitiatePayment(APIView):
         return Response({'payment_url': response['GatewayPageURL']}, status=status.HTTP_200_OK)
 
 
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.views import APIView
+from django.shortcuts import redirect
+from . import serializers
+
 class PaymentSuccess(APIView):
     def post(self, request, *args, **kwargs):
-        # Extract data from request or session
+        # Extract data from request
         data = request.data
         serializer = serializers.ShippingSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response({'message': 'Payment successful and shipping address created'}, status=status.HTTP_200_OK)
-        return Response(redirect('https://foreverstoree.netlify.app/myorders'))
+        
+        return Response({'redirect_url': 'https://foreverstoree.netlify.app/myorders'}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class PaymentCancel(APIView):
     def post(self, request, *args, **kwargs):
