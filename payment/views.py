@@ -29,7 +29,7 @@ class InitiatePayment(APIView):
         post_body['currency'] = "BDT"
         post_body['tran_id'] = transaction_id
         post_body['success_url'] = f'https://django-final-n0lr.onrender.com/payment/success/{order_id}/{user_id}/'
-        post_body['fail_url'] = f'https://django-final-n0lr.onrender.com/payment/success/{order_id}/{user_id}/'
+        post_body['fail_url'] = f'https://django-final-n0lr.onrender.com/payment/fail/{order_id}/{user_id}/'
         post_body['cancel_url'] = f'https://django-final-n0lr.onrender.com/payment/cancel/{order_id}/{user_id}/'
         post_body['emi_option'] = 0
         post_body['cus_name'] = user.username
