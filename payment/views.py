@@ -49,10 +49,10 @@ class InitiatePayment(APIView):
         return Response({'payment_url': response['GatewayPageURL']}, status=status.HTTP_200_OK)
 
 class PaymentSuccess(APIView):
-    def post(self, request, order, user_id, *args, **kwargs):
+    def post(self, request, order_id, user_id, *args, **kwargs):
         try:
             # Fetch the order and customer data
-            order_instance = models.Order.objects.get(id=order)
+            order_instance = models.Order.objects.get(id=order_id)
             customer = models.Customer.objects.get(user=user_id)
         except models.Customer.DoesNotExist:
             return Response({'error': 'Customer not found'}, status=status.HTTP_404_NOT_FOUND)
@@ -64,7 +64,7 @@ class PaymentSuccess(APIView):
         shipping_data = {
             'user': user_id,
             'customer': customer.id, 
-            'order': order,
+            'order': order_id,
             'payment': 'sslcommerz',
             'amount': amount
         }
@@ -77,7 +77,7 @@ class PaymentSuccess(APIView):
             serializer.save()  # Save the shipping address
 
             # Handle order items and create MyOrdersModel entries
-            order_items = models.OrderItem.objects.filter(order=order)
+            order_items = models.OrderItem.objects.filter(order=order_id)
             for item in order_items:
                 models.MyOrdersModel.objects.get_or_create(
                     customer=customer,
@@ -92,7 +92,7 @@ class PaymentSuccess(APIView):
             order_instance.save()
 
             # Optionally, delete order items after processing
-            models.OrderItem.objects.filter(order=order).delete()
+            models.OrderItem.objects.filter(order=order_id).delete()
 
             return Response({'message': 'Payment successful and shipping address created'}, status=status.HTTP_200_OK)
         
