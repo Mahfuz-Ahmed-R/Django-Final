@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from django.conf import settings
-from api import serializers
+from api import serializers, models
 from django.core.mail import send_mail
 
 def generate_transaction_id(length=12):
@@ -29,9 +29,9 @@ class InitiatePayment(APIView):
         post_body['total_amount'] = order.get_cart_total + 60
         post_body['currency'] = "BDT"
         post_body['tran_id'] = transaction_id
-        post_body['success_url'] = 'https://django-final-n0lr.onrender.com/payment/success/'
-        post_body['fail_url'] = 'https://django-final-n0lr.onrender.com/payment/fail/'
-        post_body['cancel_url'] = 'https://django-final-n0lr.onrender.com/payment/cancel/'
+        post_body['success_url'] = f'https://django-final-n0lr.onrender.com/payment/success/{order_id}/{user_id}/'
+        post_body['fail_url'] = f'https://django-final-n0lr.onrender.com/payment/success/{order_id}/{user_id}/'
+        post_body['cancel_url'] = f'https://django-final-n0lr.onrender.com/payment/cancel/{order_id}/{user_id}/'
         post_body['emi_option'] = 0
         post_body['cus_name'] = user.username
         post_body['cus_email'] = user.email
@@ -51,28 +51,64 @@ class InitiatePayment(APIView):
         return Response({'payment_url': response['GatewayPageURL']}, status=status.HTTP_200_OK)
 
 class PaymentSuccess(APIView):
-    def post(self, request, *args, **kwargs):
-        # Handle the success callback from SSLCOMMERZ
-        data = request.data
-        print(f"Received callback data: {data}")
+    def post(self, request, order, user_id, *args, **kwargs):
+        try:
+            # Fetch the order and customer data
+            order_instance = models.Order.objects.get(id=order)
+            customer = models.Customer.objects.get(user=user_id)
+        except models.Order.DoesNotExist:
+            return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
+        except models.Customer.DoesNotExist:
+            return Response({'error': 'Customer not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = serializers.ShippingSerializer(data=data)
+        # Calculate the total amount
+        amount = order_instance.get_cart_total + 60
+
+        # Prepare the data for the ShippingSerializer
+        shipping_data = {
+            'customer': customer.id,  # Assuming the serializer expects the customer ID
+            'order': order_instance.id,
+            'payment': 'sslcommerz',
+            'amount': amount
+        }
+
+        # Initialize the serializer with data
+        serializer = serializers.ShippingSerializer(data=shipping_data)
+
+        # Validate and save the shipping address
         if serializer.is_valid():
-            serializer.save()
+            serializer.save()  # Save the shipping address
+
+            # Handle order items and create MyOrdersModel entries
+            order_items = models.OrderItem.objects.filter(order=order_instance)
+            for item in order_items:
+                models.MyOrdersModel.objects.get_or_create(
+                    customer=customer,
+                    product=item.product,
+                    order=order_instance,
+                    size=item.size,
+                    quantity=item.quantity
+                )
+
+            # Update order status and clean up order items
+            order_instance.status = "Successful"
+            order_instance.save()
+
+            # Optionally, delete order items after processing
+            models.OrderItem.objects.filter(order=order_instance).delete()
+
             return Response({'message': 'Payment successful and shipping address created'}, status=status.HTTP_200_OK)
-        return Response({'message': 'Invalid data'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Return validation errors from the serializer
+        return Response({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
         
 
 class PaymentCancel(APIView):
-    def post(self, request, *args, **kwargs):
+    def post(self, request, order_id, user_id, *args, **kwargs):
         # Extract order ID from request or session
-        order_id = request.query_params.get('order_id')
-        user = request.query_params.get('user_id')
-        main_user = User.objects.get(id=user)
-        
-        if not order_id:
-            return Response({'error': 'Order ID not provided'}, status=status.HTTP_400_BAD_REQUEST)
-        
+        user = User.objects.get(id=user_id) 
+
         try:
             # Update order status to 'Cancelled'
             order = Order.objects.get(id=order_id)
@@ -93,14 +129,9 @@ class PaymentCancel(APIView):
             return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
 
 class PaymentFail(APIView):
-    def post(self, request, *args, **kwargs):
+    def post(self, request, order_id, user_id, *args, **kwargs):
         # Extract order ID from request or session
-        order_id = request.query_params.get('order_id')
-        user = request.query_params.get('user_id')
-        main_user = User.objects.get(id=user)
-        
-        if not order_id:
-            return Response({'error': 'Order ID not provided'}, status=status.HTTP_400_BAD_REQUEST)
+        user = User.objects.get(id=user_id)
         
         try:
             # Update order status to 'Cancelled'
