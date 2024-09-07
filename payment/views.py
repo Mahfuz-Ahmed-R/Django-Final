@@ -25,7 +25,7 @@ class InitiatePayment(APIView):
         settings = { 'store_id': 'forev66dab988a89cf', 'store_pass': 'forev66dab988a89cf@ssl', 'issandbox': True }
         sslcz = SSLCOMMERZ(settings)
         post_body = {}
-        post_body['total_amount'] = order.get_cart_total
+        post_body['total_amount'] = order.get_cart_total + 60
         post_body['currency'] = "BDT"
         post_body['tran_id'] = transaction_id
         post_body['success_url'] = 'https://django-final-n0lr.onrender.com/payment/success/'
@@ -44,7 +44,6 @@ class InitiatePayment(APIView):
         post_body['product_name'] = "Test"
         post_body['product_category'] = "Test Category"
         post_body['product_profile'] = "general"
-        # post_body['ship_name']= user.username 
 
         response = sslcz.createSession(post_body)
         print("SSLCOMMERZ Response:", response)
@@ -52,17 +51,17 @@ class InitiatePayment(APIView):
 
 
 class PaymentSuccess(APIView):
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         # Extract data from request or session
         data = request.data
         serializer = serializers.ShippingSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response({'message': 'Payment successful and shipping address created'}, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(redirect('https://foreverstoree.netlify.app/myorders'))
 
 class PaymentCancel(APIView):
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         # Extract order ID from request or session
         order_id = request.query_params.get('order_id')
         user = request.query_params.get('user_id')
@@ -91,7 +90,7 @@ class PaymentCancel(APIView):
             return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
 
 class PaymentFail(APIView):
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         # Extract order ID from request or session
         order_id = request.query_params.get('order_id')
         user = request.query_params.get('user_id')
