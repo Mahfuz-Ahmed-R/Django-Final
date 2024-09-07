@@ -46,9 +46,8 @@ class InitiatePayment(APIView):
         post_body['product_profile'] = "general"
 
         response = sslcz.createSession(post_body)
-        if response.get('status') == 'SUCCESS':
-            return Response({'payment_url': response['GatewayPageURL']}, status=status.HTTP_200_OK)
-        return Response({'error': 'Failed to initiate payment'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'payment_url': response['GatewayPageURL']}, status=status.HTTP_200_OK)
+
 
 class PaymentSuccess(APIView):
     def get(self, request, *args, **kwargs):
