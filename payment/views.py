@@ -136,22 +136,29 @@ class PaymentCancel(APIView):
 
 class PaymentFail(APIView):
     def post(self, request, order_id, user_id, *args, **kwargs):
-        # Extract order ID from request or session
-        user = User.objects.get(id=user_id)
-        
         try:
-            # Update order status to 'Cancelled'
+            # Extract user and order data
+            user = User.objects.get(id=user_id)
             order = Order.objects.get(id=order_id)
+
+            # Update order status to 'Failed'
             order.status = 'Failed'
             order.save()
 
-            # Send cancellation email to user
+            # Send failure email to user
             send_mail(
                 'Payment Failed',
-                'Your payment has been Failed. If this was a mistake, please try again.',
+                'Your payment has failed. If this was a mistake, please try again.',
                 'from@example.com',
                 [user.email],
                 fail_silently=False,
             )
-        except:
-            return Response({'message': 'Payment failed'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Return success response
+            return Response({'message': 'Payment failed and order status updated'}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Order.DoesNotExist:
+            return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
