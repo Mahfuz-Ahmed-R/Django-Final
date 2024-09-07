@@ -279,11 +279,9 @@ class ReviewSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError("Customer not found.")
 
 class ShippingSerializerSSL(serializers.ModelSerializer):
-    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
-    order = serializers.PrimaryKeyRelatedField(queryset=models.Order.objects.all())  # Assuming you have an Order model
 
     class Meta:
-        model = models.ShippingAddress  # Assuming ShippingAddress model exists
+        model = models.ShippingAddress
         fields = '__all__'
 
 class ShippingSerializer(serializers.ModelSerializer):

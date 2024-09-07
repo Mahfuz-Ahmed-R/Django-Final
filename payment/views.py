@@ -104,7 +104,7 @@ class PaymentSuccess(APIView):
             # Optionally, delete order items after processing
             models.OrderItem.objects.filter(order=order_id).delete()
 
-            return HttpResponseRedirect('https://django-final-n0lr.onrender.com/myorders/')
+            return HttpResponseRedirect('https://foreverstoree.netlify.app/myorders')
         
         # Return validation errors from the serializer
         return Response({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
@@ -131,7 +131,7 @@ class PaymentCancel(APIView):
                 fail_silently=False,
             )
 
-            return HttpResponseRedirect('https://django-final-n0lr.onrender.com/order-item/')
+            return HttpResponseRedirect('https://foreverstoree.netlify.app/cart')
         except Order.DoesNotExist:
             return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -156,7 +156,7 @@ class PaymentFail(APIView):
             )
 
             # Return success response
-            return HttpResponseRedirect('https://django-final-n0lr.onrender.com/order-item/')
+            return HttpResponseRedirect('https://foreverstoree.netlify.app/cart')
         except User.DoesNotExist:
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
         except Order.DoesNotExist:
