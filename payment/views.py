@@ -65,6 +65,11 @@ class PaymentSuccess(APIView):
             'user': user_id,
             'customer': customer.id, 
             'order': order_id,
+            'street':'street',
+            'city':'city',
+            'state':'state',
+            'zipcode':'zipcode',
+            'country':'country',
             'payment': 'sslcommerz',
             'amount': amount
         }
