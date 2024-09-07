@@ -84,12 +84,16 @@ class PaymentSuccess(APIView):
             # Handle order items and create MyOrdersModel entries
             order_items = models.OrderItem.objects.filter(order=order_id)
             for item in order_items:
+                product = item.product
+                size = item.size
+                quantity = item.quantity
+
                 models.MyOrdersModel.objects.get_or_create(
                     customer=customer,
-                    product=item.product,
-                    order=order_instance.id,
-                    size=item.size,
-                    quantity=item.quantity
+                    product=product,
+                    order=order_id,
+                    size=size,
+                    quantity=quantity
                 )
 
             # Update order status and clean up order items
