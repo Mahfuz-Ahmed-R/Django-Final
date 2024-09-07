@@ -56,6 +56,7 @@ class PaymentSuccess(APIView):
         data = request.data
         transaction_id = data.get('tran_id')
         payment_status = data.get('status')
+        print(f"Received callback data: {data}")
         
         # Verify the payment status with SSLCOMMERZ (implement this verification)
         if payment_status == 'Successful':  # Check the actual status returned
