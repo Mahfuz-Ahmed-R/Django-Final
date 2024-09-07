@@ -65,11 +65,11 @@ class PaymentSuccess(APIView):
             'user': user_id,
             'customer': customer.id, 
             'order': order_instance.id,
-            'street': 'street',
-            'city': 'city',
-            'state': 'state',
-            'zipcode': 'zipcode',
-            'country': 'country',
+            'street':'street',
+            'city':'city',
+            'state':'state',
+            'zipcode':'zipcode',
+            'country':'country',
             'payment': 'sslcommerz',
             'amount': amount
         }
@@ -81,15 +81,32 @@ class PaymentSuccess(APIView):
         if serializer.is_valid():
             serializer.save()  # Save the shipping address
 
-            # Update order status
+            # Handle order items and create MyOrdersModel entries
+            order_items = models.OrderItem.objects.filter(order=order_id)
+            for item in order_items:
+                product = item.product
+                size = item.size
+                quantity = item.quantity
+
+                models.MyOrdersModel.objects.get_or_create(
+                    customer=customer,
+                    product=product,
+                    order=order_instance.id,  # Use order_instance.id instead of order_instance
+                    size=size,
+                    quantity=quantity
+                )
+
+            # Update order status and clean up order items
             order_instance.status = "Successful"
             order_instance.save()
+
+            # Optionally, delete order items after processing
+            models.OrderItem.objects.filter(order=order_id).delete()
 
             return Response({'message': 'Payment successful and shipping address created'}, status=status.HTTP_200_OK)
         
         # Return validation errors from the serializer
         return Response({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
 
         
 
