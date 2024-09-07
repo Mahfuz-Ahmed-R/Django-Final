@@ -68,7 +68,7 @@ class PaymentSuccess(APIView):
         shipping_data = {
             'user': user_id,
             'customer': customer.id, 
-            'order': order_instance.id,
+            'order': order,
             'payment': 'sslcommerz',
             'amount': amount
         }
