@@ -20,7 +20,6 @@ transaction_id = generate_transaction_id()
 
 class InitiatePayment(APIView):
     def post(self, request, order_id, user_id, *args, **kwargs):
-        data=request.data
         user = User.objects.get(id=user_id)
         order = Order.objects.get(id=order_id)
         settings = { 'store_id': 'forev66dab988a89cf', 'store_pass': 'forev66dab988a89cf@ssl', 'issandbox': True }
@@ -47,7 +46,6 @@ class InitiatePayment(APIView):
         post_body['product_profile'] = "general"
 
         response = sslcz.createSession(post_body)
-        print(f"Received callback data: {data}")
         return Response({'payment_url': response['GatewayPageURL']}, status=status.HTTP_200_OK)
 
 class PaymentSuccess(APIView):
@@ -56,8 +54,6 @@ class PaymentSuccess(APIView):
             # Fetch the order and customer data
             order_instance = models.Order.objects.get(id=order)
             customer = models.Customer.objects.get(user=user_id)
-        except models.Order.DoesNotExist:
-            return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
         except models.Customer.DoesNotExist:
             return Response({'error': 'Customer not found'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -81,7 +77,7 @@ class PaymentSuccess(APIView):
             serializer.save()  # Save the shipping address
 
             # Handle order items and create MyOrdersModel entries
-            order_items = models.OrderItem.objects.filter(order=order_instance)
+            order_items = models.OrderItem.objects.filter(order=order)
             for item in order_items:
                 models.MyOrdersModel.objects.get_or_create(
                     customer=customer,
@@ -96,7 +92,7 @@ class PaymentSuccess(APIView):
             order_instance.save()
 
             # Optionally, delete order items after processing
-            models.OrderItem.objects.filter(order=order_instance).delete()
+            models.OrderItem.objects.filter(order=order).delete()
 
             return Response({'message': 'Payment successful and shipping address created'}, status=status.HTTP_200_OK)
         
