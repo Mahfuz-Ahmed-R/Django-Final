@@ -4,6 +4,7 @@ charset-normalizer
 Django
 django-cors-headers
 django-filter
+django-jazzmin
 djangorestframework
 environ
 future
