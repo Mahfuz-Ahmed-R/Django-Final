@@ -124,16 +124,19 @@ class OrderItemSerializer(serializers.ModelSerializer):
                     inventory_item.save()
                 else:
                     raise serializers.ValidationError('Product out of stock')
+                
+            orders = models.Order.objects.filter(customer=customer)
 
-            orderr = models.Order.objects.filter(customer=customer)
-            for order in orderr:
-                if  order.complete:
-                    new_order = models.Order.objects.cretae(customer=customer)
-                    new_order.complete = False
-                    new_order.save()
-                    orderr = new_order
+            orderr = None
+
+            for order in orders:
+                if not order.complete:
+                    orderr = order
                     break
-            orderr.save()
+
+            if orderr is None:
+                orderr = models.Order.objects.create(customer=customer)
+                orderr.save()
 
             if models.OrderItem.objects.filter(product=productt, order=orderr, size=size).exists():
                 order_item = models.OrderItem.objects.get(product=productt, order=orderr, size=size)
