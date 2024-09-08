@@ -26,6 +26,7 @@ urlpatterns = [
     path('my-order-delete/<int:pk>/<int:id>/', views.MyOrderDeleteView.as_view(), name='my-order-delete'),
     path('customer/<int:user_id>/', views.CustomerDetail.as_view(), name='customer-detail'),
     path('order-details/<int:user_id>/<str:value>/', views.OrderDetail.as_view(), name='order-details'),
+    path('cart-order/<int:order_id>/<str:value>/', views.CartOrderDetail.as_view(), name='cart-order-details'),
     path('category_view/<slug:category_slug>/<slug:subcategory_slug>/', views.ProductByCategoryView.as_view(), name='category-subcategory-slug'),
     path('get_inventory/<int:id>/', views.InvetoryGetView.as_view(), name='get_inventory'),
     path('product_by_price/<int:id>/', views.ProductByCategoryViewByPrice.as_view(), name='product_by_price'),
