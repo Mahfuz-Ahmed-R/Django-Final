@@ -395,7 +395,7 @@ class CancelOrder(serializers.ModelSerializer):
 
 class UserChangeProfile(serializers.ModelSerializer):
     class Meta:
-        model = models.Customer
+        model = User
         fields = '__all__'
 
     def update(self, instance, validated_data):
@@ -404,6 +404,12 @@ class UserChangeProfile(serializers.ModelSerializer):
         instance.phone = validated_data.get('phone', instance.phone)
         instance.address = validated_data.get('address', instance.address)
         instance.save()
+        customer = models.Customer.objects.get(
+            user=instance
+        )
+        customer.name = instance.name
+        customer.email = instance.email
+        customer.save()
         return instance
 
 class UserChangePassword(serializers.ModelSerializer):
