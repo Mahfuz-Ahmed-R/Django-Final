@@ -141,9 +141,9 @@ class CustomerDetail(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 class OrderDetail(APIView):
-    def get(self, request, user_id):
+    def get(self, request, user_id, value):
         customer = get_object_or_404(models.Customer, user__id=user_id)
-        order = get_object_or_404(models.Order, customer=customer)
+        order = get_object_or_404(models.Order, customer=customer, complete=value)
         serializer = serializers.OrderSerializer(order)
         return Response(serializer.data, status=status.HTTP_200_OK)
     

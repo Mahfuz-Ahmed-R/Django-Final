@@ -135,7 +135,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
                     break
 
             if orderr is None:
-                orderr = models.Order.objects.create(customer=customer)
+                orderr = models.Order.objects.create(customer=customer,status='PENDING')
                 orderr.save()
 
             if models.OrderItem.objects.filter(product=productt, order=orderr, size=size).exists():
