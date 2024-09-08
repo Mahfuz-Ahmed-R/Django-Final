@@ -36,6 +36,7 @@ CSRF_TRUSTED_ORIGINS = ['https://django-final-n0lr.onrender.com', 'https://*.127
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin', 
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
