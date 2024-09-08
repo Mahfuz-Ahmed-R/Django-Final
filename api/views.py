@@ -147,13 +147,6 @@ class OrderDetail(APIView):
         serializer = serializers.OrderSerializer(order)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-# class CartOrderDetail(APIView):
-#     def get(self, request, order_id, value):
-#         order = get_object_or_404(models.Order, id=order_id, complete=value)
-#         order_item = get_object_or_404(models.OrderItem, order=order, product=value)
-#         serializer = serializers.OrderSerializer(order_item)
-#         return Response(serializer.data, status=status.HTTP_200_OK)
-    
 class UserRegistrationAPIView(APIView):
     def post(self, request):
         serializer = serializers.RegistrationSerializer(data=request.data)
