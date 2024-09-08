@@ -392,7 +392,38 @@ class CancelOrder(serializers.ModelSerializer):
         except models.InventoryModel.DoesNotExist:
             raise ValidationError("Inventory item not found.")
 
-        
+
+class UserChangeProfile(serializers.ModelSerializer):
+    class Meta:
+        model = models.Customer
+        fields = '__all__'
+
+    def update(self, instance, validated_data):
+        instance.name = validated_data.get('name', instance.name)
+        instance.email = validated_data.get('email', instance.email)
+        instance.phone = validated_data.get('phone', instance.phone)
+        instance.address = validated_data.get('address', instance.address)
+        instance.save()
+        return instance
+
+class UserChangePassword(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ['username', 'password']
+
+    def update(self, instance, validated_data):
+        # Check if the username already exists and belongs to a different user
+        if 'username' in validated_data:
+            username = validated_data['username']
+            if User.objects.filter(username=username).exclude(pk=instance.pk).exists():
+                    instance.set_password(validated_data.get('password'))
+                    instance.save()
+                    return instance
+            else:
+                raise serializers.ValidationError({'username': 'Username didnot matched.'})
+    
+    
 class RegistrationSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField(write_only=True, required=True)
 
@@ -431,9 +462,3 @@ class RegistrationSerializer(serializers.ModelSerializer):
 class UserLoginSerializer(serializers.Serializer):
     username = serializers.CharField(required=True)
     password = serializers.CharField(required=True)
-
-# class SSLCommerzResponseSerializer(serializers.Serializer):
-#     status = serializers.CharField()
-#     GatewayPageURL = serializers.URLField()
-#     store_id = serializers.CharField()
-#     tran_id = serializers.CharField()

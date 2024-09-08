@@ -29,4 +29,6 @@ urlpatterns = [
     path('category_view/', views.ProductByCategoryView.as_view(), name='category-slug'),
     path('get_inventory/<int:id>/', views.InvetoryGetView.as_view(), name='get_inventory'),
     path('product_by_price/<int:id>/', views.ProductByCategoryViewByPrice.as_view(), name='product_by_price'),
+    path('user/edit_profile/', views.UserProfileUpdateView.as_view(), name='edit_profile'),
+    path('user/change_password/', views.UserChangePasswordView.as_view(), name='change_password'),
 ]

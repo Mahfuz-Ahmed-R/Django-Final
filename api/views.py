@@ -234,3 +234,19 @@ class UserLogoutView(APIView):
         request.user.auth_token.delete()
         logout(request)
         return redirect('register')
+    
+class UserChangePasswordView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = serializers.UserChangePassword(data=request.data, instance=request.user)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'status': 'password set'}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class UserProfileUpdateView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = serializers.UserChangeProfile(data=request.data, instance=request.user.customer)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
