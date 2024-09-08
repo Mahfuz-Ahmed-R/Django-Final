@@ -31,22 +31,56 @@ class ProductViewSet(viewsets.ModelViewSet):
     queryset = models.Product.objects.all()
     serializer_class = serializers.ProductSerializer
 
-class ProductByCategoryView(generics.ListAPIView):
+class ProductByCategoryView(generics.ListCreateAPIView):
     serializer_class = serializers.ProductSerializer
 
     def get_queryset(self):
-        category_slug = self.kwargs.get('category_slug')
-        subcategory_slug = self.kwargs.get('subcategory_slug')
+        queryset = models.Product.objects.all()
+
+        # For GET request, slugs can be passed as query parameters
+        category_slug = self.request.query_params.get('category_slug')
+        subcategory_slug = self.request.query_params.get('subcategory_slug')
+        color_slug = self.request.query_params.get('color_slug')
+        size_slug = self.request.query_params.get('size_slug')
+
+        # Apply filters for GET request
+        if category_slug:
+            queryset = queryset.filter(category__slug=category_slug)
+        if subcategory_slug:
+            queryset = queryset.filter(subcategory__slug=subcategory_slug)
+        if color_slug:
+            queryset = queryset.filter(color__slug=color_slug)
+        if size_slug:
+            queryset = queryset.filter(size__slug=size_slug)
         
+        return queryset
+
+    def post(self, request, *args, **kwargs):
+        # Handle POST request, slugs can be passed in the JSON body
+        data = request.data
+
+        category_slug = data.get('category_slug')
+        subcategory_slug = data.get('subcategory_slug')
+        color_slug = data.get('color_slug')
+        size_slug = data.get('size_slug')
+
+        # Apply filters for POST request
         queryset = models.Product.objects.all()
         
         if category_slug:
             queryset = queryset.filter(category__slug=category_slug)
-        
         if subcategory_slug:
             queryset = queryset.filter(subcategory__slug=subcategory_slug)
+        if color_slug:
+            queryset = queryset.filter(color__slug=color_slug)
+        if size_slug:
+            queryset = queryset.filter(size__slug=size_slug)
         
-        return queryset
+        # Return the filtered queryset
+        serializer = self.serializer_class(queryset, many=True)
+        return Response(serializer.data)
+
+
     
 class ProductByCategoryViewByPrice(generics.ListAPIView):
     serializer_class = serializers.ProductSerializer
