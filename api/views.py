@@ -143,7 +143,10 @@ class CustomerDetail(APIView):
 class OrderDetail(APIView):
     def get(self, request, user_id, value):
         customer = get_object_or_404(models.Customer, user__id=user_id)
-        order = get_object_or_404(models.Order, customer=customer, complete=value)
+        if value is None:
+            order = get_object_or_404(models.Order, customer=customer)
+        else:
+            order = get_object_or_404(models.Order, customer=customer, status=value)
         serializer = serializers.OrderSerializer(order)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
